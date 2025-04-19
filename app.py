@@ -1,8 +1,5 @@
 from flask import Flask, request, jsonify, render_template
 import requests
-import os
-port = int(os.environ.get("PORT", 5000))
-app.run(host="0.0.0.0", port=port)
 
 app = Flask(__name__)
 
@@ -24,3 +21,7 @@ def get_coords():
         return jsonify({"lat": result["lat"], "lon": result["lon"]})
     return jsonify({"error": "Không tìm thấy tọa độ"}), 404
   
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
