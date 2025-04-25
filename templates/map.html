@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <title>Bản đồ Leaflet</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>#map { height: 500px; margin-top: 10px; }</style>
+    <style>
+        #map { height: 500px; margin-top: 10px; }
+    </style>
 </head>
 <body>
     <h2>Nhập địa chỉ để đánh dấu trên bản đồ</h2>
     <input type="text" id="address" placeholder="Ví dụ: Hồ Gươm, Hà Nội">
     <button onclick="search()">Tìm</button>
+
+    <!-- Vùng hiển thị tọa độ -->
+    <p id="coords"></p>
 
     <div id="map"></div>
 
@@ -42,6 +47,9 @@
                         .bindPopup(address).openPopup();
 
                     map.setView([lat, lon], 15);
+
+                    // Hiển thị tọa độ
+                    document.getElementById("coords").innerText = `Tọa độ: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
                 } else {
                     alert("Không tìm thấy địa chỉ.");
                 }
