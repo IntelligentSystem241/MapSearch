@@ -1,40 +1,238 @@
-from flask import Flask, request, jsonify, render_template
-from speedsms import SpeedSMSAPI
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI-Driven Cyclone Prediction</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    :root {
+      --main-color: #c62828;
+      --background: #f1f1f1;
+      --text-dark: #222;
+      --font-size-large: 1.8rem;
+      --font-size-medium: 1rem;
+    }
 
-import requests
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
 
-app = Flask(__name__)
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+    }
 
-@app.route("/")
-def index():
-    return render_template("map.html")
+    .container {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      width: 100vw;
+    }
 
-@app.route("/get_coords", methods=["POST"])
-def get_coords():
-    data = request.get_json()
-    address = data.get("address")
-    url = "https://nominatim.openstreetmap.org/search"
-    params = {"q": address, "format": "json", "limit": 1}
-    headers = {"User-Agent": "MyMapApp/1.0 (your-email@example.com)"}
-    
-    response = requests.get(url, params=params, headers=headers)
-    if response.status_code == 200 and response.json():
-        result = response.json()[0]
-        return jsonify({"lat": result["lat"], "lon": result["lon"]})
-    return jsonify({"error": "Không tìm thấy tọa độ"}), 404
-@app.route("/send_sms", methods=["POST"])
-def send_sms():
-    data = request.get_json()
-    phone = data.get("phone")
-    message = data.get("message")
+    .left-panel {
+      width: 28%;
+      padding: 40px 30px;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
 
-    try:
-        api = SpeedSMSAPI("VSwbgZoWdyz3C3N9AiHJfaEReP0wWuYV")  # <-- nhập token SpeedSMS ở đây
-        result = api.send_sms(phone, message, 5, "c660f859b35d5493") 
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    .right-panel {
+      flex: 1;
+      position: relative;
+      padding: 40px 30px;
+      background: #ffffff;
+    }
+
+    h1 {
+      font-size: var(--font-size-large);
+      margin: 0;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: var(--text-dark);
+    }
+
+    h1 span {
+      color: var(--main-color);
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      margin: 0 0 30px 0;
+      font-weight: normal;
+      color: #555;
+    }
+
+    button, input[type="text"] {
+      font-size: var(--font-size-medium);
+      border-radius: 10px;
+      border: none;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    .loc-btn {
+      background-color: var(--main-color);
+      color: white;
+      font-weight: bold;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+      background: #eef0e5;
+      padding: 6px;
+      border-radius: 10px;
+    }
+
+    .search-box input {
+      border: none;
+      background: transparent;
+      outline: none;
+      width: 100%;
+    }
+
+    .coords-box {
+      background-color: #eee;
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      font-size: 0.95rem;
+      color: #333;
+    }
+
+    .coords-box div {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .coords-box input {
+      width: 55%;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+
+    #map {
+      height: 100%;
+      border-radius: 12px;
+    }
+
+    .next-btn {
+      position: absolute;
+      top: 40px;
+      right: 40px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      background-color: var(--main-color);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 1200px) {
+      .container {
+        flex-direction: column;
+      }
+      .left-panel, .right-panel {
+        width: 100%;
+        height: auto;
+      }
+      .next-btn {
+        position: relative;
+        margin-top: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="left-panel">
+    <h1><span>AI-DRIVEN</span> CYCLONE PREDICTION</h1>
+    <h2>CHOOSE PREDICTION LOCATION</h2>
+
+    <button class="loc-btn" onclick="getCurrentLocation()">📍 Your Location</button>
+
+    <div class="search-box">
+      🔍<input type="text" id="address" placeholder="Search Location" onkeydown="if(event.key==='Enter') search()">
+    </div>
+
+    <div class="coords-box">
+      <div>
+        <label>Lat.</label>
+        <input id="lat" readonly>
+      </div>
+      <div>
+        <label>Long.</label>
+        <input id="lon" readonly>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <button class="next-btn">NEXT</button>
+    <div id="map"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([10.768571, 106.779494], 10);
+  let marker;
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  function setMarker(lat, lon, label = "Selected Location") {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([lat, lon]).addTo(map).bindPopup(label).openPopup();
+    map.setView([lat, lon], 10);
+    document.getElementById("lat").value = lat.toFixed(6);
+    document.getElementById("lon").value = lon.toFixed(6);
+  }
+
+  function getCurrentLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        setMarker(lat, lon, "Your Location");
+      }, function () {
+        alert("Không thể lấy vị trí hiện tại.");
+      });
+    }
+  }
+
+  function search() {
+    const address = document.getElementById("address").value;
+    if (!address) return;
+
+    fetch("/get_coords", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({address})
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.lat && data.lon) {
+        setMarker(parseFloat(data.lat), parseFloat(data.lon), address);
+      } else {
+        alert("Không tìm thấy địa chỉ.");
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
