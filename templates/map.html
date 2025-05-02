@@ -1,87 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Bản đồ Leaflet</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        #map { height: 500px; margin-top: 10px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>AI-Driven Cyclone Prediction</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f1f1f1;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+      padding: 30px;
+      align-items: flex-start;
+      background: #fff;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .left-panel {
+      flex: 1;
+      padding-right: 20px;
+    }
+    .right-panel {
+      flex: 2;
+      position: relative;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    h1 span {
+      color: red;
+    }
+    h2 {
+      font-weight: 400;
+      font-size: 18px;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    button, input {
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      margin-bottom: 16px;
+    }
+    .loc-btn {
+      background-color: #c62828;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    .search-btn {
+      background-color: #eef0e5;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    input[type="text"] {
+      width: 100%;
+      margin-top: 8px;
+      background-color: #f3f3f3;
+      padding: 10px;
+    }
+    .coords-box {
+      background-color: #99999933;
+      padding: 16px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+    #map {
+      height: 400px;
+      border-radius: 10px;
+    }
+    .next-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background-color: #c62828;
+      color: white;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <h2>Nhập địa chỉ để đánh dấu trên bản đồ</h2>
-    <input type="text" id="address" placeholder="Ví dụ: Hồ Gươm, Hà Nội">
-    <button onclick="search()">Tìm</button>
 
-    <!-- Vùng hiển thị tọa độ -->
-    <p id="coords"></p>
+<div class="container">
+  <div class="left-panel">
+    <h1><span>AI-DRIVEN</span> CYCLONE PREDICTION</h1>
+    <h2>CHOOSE PREDICTION LOCATION</h2>
 
+    <button class="loc-btn" onclick="getCurrentLocation()">📍 Your Location</button>
+
+    <button class="search-btn">
+      🔍 <input type="text" id="address" placeholder="Search Location" onkeydown="if(event.key==='Enter') search()">
+    </button>
+
+    <div class="coords-box">
+      <div>Lat. <input id="lat" readonly></div>
+      <div>Long. <input id="lon" readonly></div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <button class="next-btn">NEXT</button>
     <div id="map"></div>
+  </div>
+</div>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <h2>Gửi tin nhắn SMS</h2>
-<input type="text" id="phone" placeholder="Nhập số điện thoại (84...)">
-<input type="text" id="smsMessage" placeholder="Nhập nội dung tin nhắn">
-<button onclick="sendSMS()">Gửi SMS</button>
-
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-    function sendSMS() {
-        const phone = document.getElementById("phone").value;
-        const message = document.getElementById("smsMessage").value;
+  const map = L.map('map').setView([10.768571, 106.779494], 10);
+  let marker;
 
-        fetch("/send_sms", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({phone, message})
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === "success") {
-                alert("Đã gửi tin nhắn thành công!");
-            } else {
-                alert("Lỗi: " + (data.message || "Không rõ lỗi"));
-            }
-        });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  function setMarker(lat, lon, label = "Selected Location") {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([lat, lon]).addTo(map).bindPopup(label).openPopup();
+    map.setView([lat, lon], 10);
+    document.getElementById("lat").value = lat.toFixed(6);
+    document.getElementById("lon").value = lon.toFixed(6);
+  }
+
+  function getCurrentLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        setMarker(lat, lon, "Your Location");
+      }, function () {
+        alert("Không thể lấy vị trí hiện tại.");
+      });
     }
+  }
+
+  function search() {
+    const address = document.getElementById("address").value;
+    if (!address) return;
+
+    fetch("/get_coords", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({address})
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.lat && data.lon) {
+        setMarker(parseFloat(data.lat), parseFloat(data.lon), address);
+      } else {
+        alert("Không tìm thấy địa chỉ.");
+      }
+    });
+  }
 </script>
 
-    <script>
-        const map = L.map('map').setView([21.0285, 105.8542], 13);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
-        let marker;
-
-        function search() {
-            const address = document.getElementById("address").value;
-
-            fetch("/get_coords", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({address: address})
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.lat && data.lon) {
-                    const lat = parseFloat(data.lat);
-                    const lon = parseFloat(data.lon);
-
-                    if (marker) map.removeLayer(marker);
-                    marker = L.marker([lat, lon]).addTo(map)
-                        .bindPopup(address).openPopup();
-
-                    map.setView([lat, lon], 15);
-
-                    // Hiển thị tọa độ
-                    document.getElementById("coords").innerText = `Tọa độ: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-                } else {
-                    alert("Không tìm thấy địa chỉ.");
-                }
-            });
-        }
-    </script>
-    
 </body>
 </html>
