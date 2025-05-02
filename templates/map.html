@@ -19,6 +19,32 @@
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <h2>Gửi tin nhắn SMS</h2>
+<input type="text" id="phone" placeholder="Nhập số điện thoại (84...)">
+<input type="text" id="smsMessage" placeholder="Nhập nội dung tin nhắn">
+<button onclick="sendSMS()">Gửi SMS</button>
+
+<script>
+    function sendSMS() {
+        const phone = document.getElementById("phone").value;
+        const message = document.getElementById("smsMessage").value;
+
+        fetch("/send_sms", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({phone, message})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                alert("Đã gửi tin nhắn thành công!");
+            } else {
+                alert("Lỗi: " + (data.message || "Không rõ lỗi"));
+            }
+        });
+    }
+</script>
+
     <script>
         const map = L.map('map').setView([21.0285, 105.8542], 13);
 
@@ -56,5 +82,6 @@
             });
         }
     </script>
+    
 </body>
 </html>
