@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify, render_template
+from speedsms import SpeedSMSAPI
+
 import requests
 
 app = Flask(__name__)
