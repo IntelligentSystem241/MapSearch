@@ -20,7 +20,18 @@ def get_coords():
         result = response.json()[0]
         return jsonify({"lat": result["lat"], "lon": result["lon"]})
     return jsonify({"error": "Không tìm thấy tọa độ"}), 404
-  
+  @app.route("/send_sms", methods=["POST"])
+def send_sms():
+    data = request.get_json()
+    phone = data.get("phone")
+    message = data.get("message")
+
+    try:
+        api = SpeedSMSAPI("VSwbgZoWdyz3C3N9AiHJfaEReP0wWuYV")  # <-- nhập token SpeedSMS ở đây
+        result = api.send_sms(phone, message, 5, "c660f859b35d5493") 
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))
