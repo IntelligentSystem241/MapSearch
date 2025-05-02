@@ -20,7 +20,7 @@ def get_coords():
         result = response.json()[0]
         return jsonify({"lat": result["lat"], "lon": result["lon"]})
     return jsonify({"error": "Không tìm thấy tọa độ"}), 404
-  @app.route("/send_sms", methods=["POST"])
+@app.route("/send_sms", methods=["POST"])
 def send_sms():
     data = request.get_json()
     phone = data.get("phone")
