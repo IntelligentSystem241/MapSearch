@@ -214,24 +214,55 @@
     }
   }
 
-  function search() {
+function search() {
     const address = document.getElementById("address").value;
-    if (!address) return;
 
     fetch("/get_coords", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({address})
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({address: address})
     })
     .then(res => res.json())
     .then(data => {
-      if (data.lat && data.lon) {
-        setMarker(parseFloat(data.lat), parseFloat(data.lon), address);
-      } else {
-        alert("Không tìm thấy địa chỉ.");
-      }
+        if (data.lat && data.lon) {
+            const lat = parseFloat(data.lat);
+            const lon = parseFloat(data.lon);
+
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lon]).addTo(map)
+                .bindPopup(address).openPopup();
+
+            map.setView([lat, lon], 15);
+            document.getElementById("coords").innerText = `Tọa độ: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+
+            // Gửi tọa độ kiểm tra bão
+            fetch("/check_storms", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({lat: lat, lon: lon})
+            })
+            .then(res => res.json())
+            .then(data => {
+                const storms = data.storms;
+                const div = document.getElementById("storm-results");
+                if (storms.length === 0) {
+                    div.innerHTML = "<p>✅ Không có cơn bão nào trong vòng 1000km.</p>";
+                } else {
+                    let html = "<p>⚠️ Có " + storms.length + " cơn bão gần đây:</p><ul>";
+                    storms.forEach(storm => {
+                        html += `<li><b>${storm.Name || "Không tên"}</b> (${storm.SID}) - ${storm.ISO_TIME}, cách ${storm.Distance_km.toFixed(1)} km</li>`;
+                    });
+                    html += "</ul>";
+                    div.innerHTML = html;
+                }
+            });
+        } else {
+            alert("Không tìm thấy địa chỉ.");
+        }
     });
-  }
+}
+<!-- Kết quả bão -->
+<div id="storm-results"></div>
 </script>
 
 </body>
