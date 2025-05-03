@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kiểm tra bão gần bạn</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { padding: 10px; margin: 5px; width: 300px; }
+    .storm { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h2>Nhập địa chỉ để kiểm tra bão trong bán kính 1000km</h2>
+  <form id="stormForm">
+    <input type="text" id="address" placeholder="Nhập địa chỉ">
+    <button type="submit">Kiểm tra</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    $("#stormForm").submit(function(e) {
+      e.preventDefault();
+      const address = $("#address").val();
+      $("#result").html("<p>Đang kiểm tra...</p>");
+
+      $.post("/get_coords", { address: address }, function(data) {
+        if (data.error) {
+          $("#result").html("<p style='color:red;'>" + data.error + "</p>");
+        } else {
+          const lat = parseFloat(data.lat);
+          const lon = parseFloat(data.lon);
+
+          $.ajax({
+            url: "/check_storms",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ lat: lat, lon: lon }),
+            success: function(response) {
+              if (response.storms.length === 0) {
+                $("#result").html("<p>Không có cơn bão nào trong bán kính 1000km.</p>");
+              } else {
+                let html = "<h3>Các cơn bão gần bạn:</h3>";
+                response.storms.forEach(storm => {
+                  html += `<div class="storm">
+                    <strong>Tên:</strong> ${storm.Name || "(Không tên)"}<br>
+                    <strong>Mã SID:</strong> ${storm.SID}<br>
+                    <strong>Thời gian:</strong> ${storm.ISO_TIME}<br>
+                    <strong>Khoảng cách:</strong> ${storm.Distance_km.toFixed(2)} km
+                  </div>`;
+                });
+                $("#result").html(html);
+              }
+            }
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
