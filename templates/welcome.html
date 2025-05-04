@@ -85,7 +85,7 @@
   border-radius: 15px;
 }
 #map {
-  position: relative
+  position: relative;
   height: 100%;
   border-radius: 12px;
     }
@@ -157,7 +157,7 @@ background-color: rgba(192, 0, 0, 0.8);
   height: auto;
 }
 
-.location-btn-search {
+.search-box input {
   position: absolute;
   top: 320px;
   left: 200px;
@@ -207,23 +207,22 @@ background-color: rgba(192, 0, 0, 0.8);
 <div class="coordinate-box">
   <div class="coord-row">
     <label class="coord-label">Lat.</label>
-    <input type="text" class="coord-output" value="10.768571" readonly>
+    <input id="lat" readonly>
   </div>
   <div class="coord-row">
     <label class="coord-label">Long.</label>
-    <input type="text" class="coord-output" value="106.779494" readonly>
+    <input id="lon" readonly>
   </div>
 </div>
 
-<button class="location-btn">
+<button class="loc-btn" onclick = "getCurrentLocation()">
   <img src="location.png" class="location-icon" alt="Location Icon">
   <span>Your Location</span>
 </button>
+    <div class="search-box">
+      <input type="text" id="address" placeholder="Search Location" onkeydown="if(event.key==='Enter') search()">
+    </div>
 
-<button class="location-btn-search">
-  <img src="search.png" class="location-icon-search" alt="Location Icon Search">
-  <span>Search Location</span>
-</button>
 
 <div class="map-box">
   <div id="map"></div>
@@ -233,9 +232,9 @@ background-color: rgba(192, 0, 0, 0.8);
   const map = L.map('map').setView([10.768571, 106.779494], 10);
   let marker;
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Esri World Imagery'
+}).addTo(map);
 
   function setMarker(lat, lon, label = "Selected Location") {
     if (marker) map.removeLayer(marker);
