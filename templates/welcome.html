@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI-Driven Cyclone Prediction</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background-color: #000; /* Viền đen */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 90%;
+      height: 90%;
+      background-image: url('Background.jpg'); /* 👉 Dùng ảnh thật của bạn */
+      background-size: 1000px auto;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: relative;
+    }
+
+.title-box {
+  position: absolute;
+  top: 30px;
+  left: 140px;
+  font-family: 'UTM Bebas', sans-serif;
+}
+
+.title-line {
+  font-size: 70px;
+  font-weight: normal;
+  color: #231E0C; /* màu của dòng chính */
+}
+
+.title-line .highlight {
+  color: #C00000; /* màu riêng cho AI-DRIVEN */
+}
+.subtitle-line {
+  position: absolute;
+  top: 160px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Barlow', sans-serif;
+  font-size: 38px;
+  font-weight: 400;
+  color: #231E0C;
+}
+
+.next-button {
+  position: absolute;
+  top: 155px; /* Căn theo chiều dọc với subtitle-line */
+  right: 200px; /* Điều chỉnh vị trí nút sát mép phải */
+  font-family: 'Barlow', sans-serif;
+  font-size: 30px;
+  font-weight: bold;
+  background-color: #C00000;
+  color: white;
+  border: none;
+  border-radius: 35px;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.next-button:hover {
+  background-color: #a00000;
+}
+
+.map-box {
+  position: absolute;
+  bottom: 75px;
+  right: 200px;
+  width: 620px;   /* bạn có thể điều chỉnh */
+  height: 365px;
+  background-color: rgba(127, 127, 127, 0.75);
+  border: none;
+  border-radius: 15px;
+}
+
+.coordinate-box {
+  position: absolute;
+  bottom: 75px;
+  left: 200px;
+  width: 329px;   /* bạn có thể điều chỉnh */
+  height: 185px;
+  background-color: rgba(127, 127, 127, 0.75);
+  border: none;
+  border-radius: 15px;
+}
+
+.coord-row {
+  display: flex;
+  flex-direction: column;
+  margin: 10px 20px;
+}
+
+.coord-label {
+  font-family: 'Barlow', sans-serif;
+  font-size: 28px;
+  color: #322B1A;
+  margin-bottom: 5px;
+}
+
+.coord-output {
+  font-family: 'Barlow', sans-serif;
+  font-size: 28px;
+  color:  #322B1A;
+  background-color: #D9D9D9;
+  border: none;
+  border-radius: 20px;
+  text-align: center;
+  padding: 3px;
+  height: 32px;
+  pointer-events: none; /* đảm bảo không chỉnh được */
+}
+
+.location-btn {
+  position: absolute;
+  top: 240px;
+  left: 200px;
+  width: 328px;
+  height: 60px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+background-color: rgba(192, 0, 0, 0.8);
+  color: #F5F1E2;
+  font-family: 'Barlow', sans-serif;
+  font-size: 30px;
+  font-weight: 500;
+
+  padding-left: 60px; /* chừa khoảng cho icon */
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+.location-icon {
+  position: absolute;
+  left: 14px;
+  width: 40px;
+  height: auto;
+}
+
+.location-btn-search {
+  position: absolute;
+  top: 320px;
+  left: 200px;
+  width: 328px;
+  height: 60px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+ background-color: rgba(236, 239, 225, 0.8);
+  color: #605E5A;
+  font-family: 'Barlow', sans-serif;
+  font-size: 30px;
+  font-weight: 500;
+
+  padding-left: 60px; /* chừa khoảng cho icon */
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+.location-icon-search {
+  position: absolute;
+  left: 16px;
+  width: 35px;
+  height: auto;
+}
+
+  </style>
+
+
+</head>
+
+
+<body>
+  <div class="container">
+<div class="title-box">
+  <div class="title-line">
+    <span class="highlight">AI-DRIVEN</span> CYCLONE PREDICTION
+  </div>
+</div>
+    </div>
+
+<div class="subtitle-line">CHOOSE PREDICTION LOCATION</div>
+<button class="next-button" id="nextBtn">NEXT</button>
+
+<div class="coordinate-box">
+  <div class="coord-row">
+    <label class="coord-label">Lat.</label>
+    <input type="text" class="coord-output" value="10.768571" readonly>
+  </div>
+  <div class="coord-row">
+    <label class="coord-label">Long.</label>
+    <input type="text" class="coord-output" value="106.779494" readonly>
+  </div>
+</div>
+
+<button class="location-btn">
+  <img src="location.png" class="location-icon" alt="Location Icon">
+  <span>Your Location</span>
+</button>
+
+<button class="location-btn-search">
+  <img src="search.png" class="location-icon-search" alt="Location Icon Search">
+  <span>Search Location</span>
+</button>
+
+<div class="map-box">
+</div>
+
+
+
+
+
+<script>
+  document.getElementById('nextBtn').addEventListener('click', function () {
+    window.location.href = 'weather.html';
+  });
+</script>
+
+
+</body>
+</html>
