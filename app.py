@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return render_template("map.html")
+    return render_template("welcome.html")
 
 @app.route("/get_coords", methods=["POST"])
 def get_coords():
